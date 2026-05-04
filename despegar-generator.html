@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Despegar · Generador de Piezas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --despegar-blue: #1A0DAB;
+    --despegar-purple: #6B4EFF;
+    --despegar-violet: #4A3AFF;
+    --accent: #00D4FF;
+    --bg: #0A0A14;
+    --surface: #12121F;
+    --surface2: #1C1C2E;
+    --border: rgba(255,255,255,0.08);
+    --text: #F0F0FF;
+    --text-muted: #8888AA;
+    --success: #00E5A0;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── HEADER ── */
+  header {
+    padding: 18px 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--despegar-purple);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  header h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  header span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    margin-left: auto;
+    background: rgba(107,78,255,0.15);
+    border: 1px solid rgba(107,78,255,0.3);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  /* ── LAYOUT ── */
+  .workspace {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 0;
+    min-height: calc(100vh - 65px);
+  }
+
+  /* ── PANEL IZQUIERDO ── */
+  .panel {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  .field-group { display: flex; flex-direction: column; gap: 12px; }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  input, select, textarea {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    padding: 10px 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--despegar-purple);
+    box-shadow: 0 0 0 3px rgba(107,78,255,0.15);
+  }
+  select option { background: #1C1C2E; }
+
+  .price-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* formato pills */
+  .format-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .pill:hover { border-color: var(--despegar-purple); color: var(--text); }
+  .pill.active {
+    background: var(--despegar-purple);
+    border-color: var(--despegar-purple);
+    color: #fff;
+  }
+
+  /* foto toggle */
+  .photo-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+  }
+  .toggle {
+    width: 40px; height: 22px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--despegar-purple); border-color: var(--despegar-purple); }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px; left: 2px;
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 20px; }
+
+  /* upload zone */
+  .upload-zone {
+    border: 1.5px dashed var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    font-size: 0.82rem;
+  }
+  .upload-zone:hover {
+    border-color: var(--despegar-purple);
+    background: rgba(107,78,255,0.05);
+    color: var(--text);
+  }
+  .upload-zone .icon { font-size: 1.8rem; margin-bottom: 6px; }
+  #fileInput { display: none; }
+
+  /* CTA */
+  .btn-generate {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--despegar-purple), var(--despegar-violet));
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Syne', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-generate:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(107,78,255,0.4);
+  }
+
+  .btn-download {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--success);
+    border-radius: 12px;
+    color: var(--success);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-download:hover {
+    background: rgba(0,229,160,0.08);
+  }
+
+  /* ── PANEL DERECHO ── */
+  .preview-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 30% 20%, rgba(107,78,255,0.06) 0%, transparent 60%),
+                      radial-gradient(circle at 70% 80%, rgba(0,212,255,0.04) 0%, transparent 50%);
+    position: relative;
+  }
+
+  .preview-label {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  /* ── LA PIEZA ── */
+  #piece-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #piece {
+    font-family: Arial, sans-serif;
+    position: relative;
+    overflow: hidden;
+    transition: width 0.3s, height 0.3s;
+  }
+
+  /* Canvas real: 1080×1920 — preview al 50%: 540×960 */
+  #piece.vertical { width: 540px; height: 960px; }
+  #piece.horizontal { width: 660px; height: 375px; }
+  #piece.square { width: 500px; height: 500px; }
+
+  .piece-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #5B3FD9 0%, #3A2DB5 100%);
+  }
+
+  /* foto superior — región 0 a 815px en canvas real */
+  .piece-photo {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 407px; /* 815/2 */
+    background-size: cover;
+    background-position: center;
+  }
+  .piece-photo::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, transparent, #5B3FD9);
+  }
+
+  /* región: días y noches — Y:407, H:55 */
+  .region-duracion {
+    position: absolute;
+    top: 407px; left: 0; right: 0;
+    height: 55px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #4300d2;
+  }
+
+  /* región: precio — Y:462, H:72 */
+  .region-precio {
+    position: absolute;
+    top: 462px; left: 0; right: 0;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 20px;
+    background: #4300d2;
+  }
+
+  /* región: vuelo + fecha — Y:534, H:110 */
+  .region-vuelo {
+    position: absolute;
+    top: 534px; left: 0; right: 0;
+    height: 110px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 20px;
+    background: #4300d2;
+    gap: 4px;
+  }
+
+  /* región: asesor — Y:644, H:60 */
+  .region-asesor {
+    position: absolute;
+    top: 644px; left: 0; right: 0;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: #4300d2;
+  }
+
+  /* región: cuotas + bancos — Y:704, H:107 */
+  .region-cuotas {
+    position: absolute;
+    top: 704px; left: 0; right: 0;
+    height: 107px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 20px;
+    gap: 6px;
+    background: #4300d2;
+  }
+
+  /* región: logo Despegar — Y:811, H:90 */
+  .region-logo {
+    position: absolute;
+    top: 811px; left: 0; right: 0;
+    height: 90px;
+    background: #4300d2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* región: TyC — Y:901, H:57 */
+  .region-tyc {
+    position: absolute;
+    top: 901px; left: 0; right: 0;
+    height: 57px;
+    background: #4300d2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 14px;
+  }
+
+  /* polaroid — marco transparente, medidas al 50% del canvas real */
+  .polaroid {
+    position: absolute;
+    width: 270px;       /* 540/2 */
+    height: 357px;      /* 715/2 */
+    left: 126px;        /* 253.4/2 */
+    top: 12px;          /* 24.1/2 */
+    transform: rotate(-4.8deg);
+    z-index: 10;
+    border: 15px solid white;
+    border-bottom: 50px solid white;
+    background: transparent;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .polaroid-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: #222;
+    line-height: 1.3;
+    font-family: Arial, sans-serif;
+    padding: 0 6px 4px;
+  }
+  .stars { color: #FFB800; font-size: 9px; }
+
+  /* contenido inferior */
+  .piece-content {
+    position: absolute;
+    z-index: 5;
+    color: white;
+    width: 100%;
+    transition: all 0.3s;
+  }
+  #piece.vertical .piece-content {
+    bottom: 0; left: 0;
+    padding: 12px 18px 8px;
+  }
+  #piece.horizontal .piece-content {
+    right: 0; top: 0; bottom: 0;
+    width: 54%;
+    padding: 20px 18px 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  #piece.square .piece-content {
+    bottom: 0; left: 0;
+    padding: 10px 16px 6px;
+  }
+
+  .duration-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .desde-label {
+    font-size: 12px;
+    font-weight: 400;
+    opacity: 0.85;
+    margin-bottom: 0px;
+  }
+
+  .price-display {
+    font-size: 57px;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 2px;
+  }
+  #piece.horizontal .price-display { font-size: 32px; }
+  #piece.square .price-display { font-size: 30px; }
+
+  .price-currency { font-size: 18px; vertical-align: super; font-weight: 700; }
+  .price-cop { font-size: 13px; font-weight: 600; opacity: 0.8; }
+
+  .origin-line {
+    font-size: 21px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    opacity: 0.95;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .avianca-badge {
+    background: white;
+    color: #C0392B;
+    font-weight: 700;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .includes-line {
+    font-size: 15px;
+    opacity: 0.8;
+    margin-bottom: 4px;
+  }
+
+  .date-line {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-bottom: 6px;
+  }
+
+  .btn-asesor {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1.5px solid rgba(255,255,255,0.5);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    width: fit-content;
+  }
+
+  .cuotas-box {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .cuotas-text { font-size: 10px; line-height: 1.3; }
+  .cuotas-num { font-size: 22px; font-weight: 900; color: white; line-height: 1; }
+
+  .banks-row {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .bank-pill {
+    background: rgba(255,255,255,0.15);
+    border-radius: 5px;
+    padding: 2px 7px;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  .piece-footer {
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+  }
+  #piece.vertical .piece-footer { height: 44px; }
+  #piece.horizontal .piece-footer {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 54%;
+    height: 38px;
+  }
+  #piece.square .piece-footer { height: 36px; }
+
+  .despegar-logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #3A2DB5;
+    font-size: 20px;
+    font-weight: 900;
+    font-family: Arial, sans-serif;
+  }
+  .despegar-logo .d-mark {
+    width: 24px; height: 24px;
+    background: #3A2DB5;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .legal-text {
+    position: absolute;
+    bottom: 44px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 7px;
+    color: rgba(255,255,255,0.4);
+    padding: 0 12px;
+    z-index: 6;
+    line-height: 1.4;
+  }
+  #piece.horizontal .legal-text {
+    bottom: 38px;
+    left: 48%;
+    right: 0;
+  }
+
+  /* ── NOTIF ── */
+  .notif {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--success);
+    color: var(--success);
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+    z-index: 100;
+  }
+  .notif.show { opacity: 1; transform: translateY(0); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">✈</div>
+  <h1>Generador de Piezas</h1>
+  <span>MVP · Despegar Marketing</span>
+</header>
+
+<div class="workspace">
+
+  <!-- ══ PANEL IZQUIERDO ══ -->
+  <div class="panel">
+
+    <!-- FORMATO -->
+    <div>
+      <div class="section-title">Formato</div>
+      <div class="format-pills">
+        <div class="pill active" data-format="vertical" onclick="setFormat(this, 'vertical')">📱 Vertical</div>
+        <div class="pill" data-format="horizontal" onclick="setFormat(this, 'horizontal')">🖥 Horizontal</div>
+        <div class="pill" data-format="square" onclick="setFormat(this, 'square')">⬛ Cuadrado</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- DESTINO -->
+    <div>
+      <div class="section-title">Destino</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Destino del paquete</label>
+          <select id="sel-destino" onchange="handleDestino(this)">
+            <option value="">Selecciona destino...</option>
+            <option value="Cancún">Cancún</option>
+            <option value="Punta Cana">Punta Cana</option>
+            <option value="Panamá">Panamá</option>
+            <option value="San Andrés">San Andrés</option>
+            <option value="Cartagena">Cartagena</option>
+            <option value="Santa Marta">Santa Marta</option>
+            <option value="otro">✏️ Otro...</option>
+          </select>
+        </div>
+        <div class="field" id="field-destino-custom" style="display:none">
+          <label>Escribe el destino</label>
+          <input type="text" id="destino-custom" placeholder="Ej: Buenos Aires" oninput="updatePiece()">
+        </div>
+        <div class="field">
+          <label>Hotel / Nombre del paquete</label>
+          <input type="text" id="hotel" placeholder="Ej: Grand Oasis Palm ★★★★" value="Grand Oasis Palm ★★★★" oninput="updatePiece()">
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- ORIGEN -->
+    <div>
+      <div class="section-title">Ciudad Origen</div>
+      <div class="field-group">
+        <div class="field">
+          <label>Ciudad de salida</label>
+          <select id="sel-origen" onchange="handleOrigen(this)">
+            <option value="">Selecciona origen...</option>
+            <option value="Bogotá">Bogotá</option>
+            <option value="Cali">Cali</option>
+            <option value="Medellín">Medellín</option>
+            <option value="Barranquilla">Barranquilla</option>
+            <option value="otro">✏️ Otro...</option>
+          </select>
+        </div>
+        <div class="field" id="field-origen-custom" style="display:none">
+          <label>Escribe la ciudad</label>
+          <input type="text" id="origen-custom" placeholder="Ej: Pereira" oninput="updatePiece()">
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- PRECIO Y FECHAS -->
+    <div>
+      <div class="section-title">Precio y Detalles</div>
+      <div class="field-group">
+        <div class="price-row">
+          <div class="field">
+            <label>Precio (sin puntos)</label>
+            <input type="text" id="precio" placeholder="4036000" value="4.036.000" oninput="updatePiece()">
+          </div>
+          <div class="field">
+            <label>Duración</label>
+            <input type="text" id="duracion" value="5 días 4 noches" oninput="updatePiece()">
+          </div>
+        </div>
+        <div class="field">
+          <label>Fecha de viaje</label>
+          <input type="text" id="fecha" value="09 al 13 de febrero de 2026" oninput="updatePiece()">
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- FOTO -->
+    <div>
+      <div class="section-title">Foto del Destino</div>
+      <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
+        <div class="icon">🏖</div>
+        <div>Haz clic para subir la foto del destino</div>
+        <div style="font-size:0.7rem; margin-top:4px; opacity:0.6">JPG, PNG · Se muestra en la polaroid</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" onchange="handlePhoto(this)">
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="divider"></div>
+
+    <!-- TYC -->
+    <div>
+      <div class="section-title">Términos y Condiciones</div>
+      <div class="field">
+        <label>Texto legal del pie de página</label>
+        <textarea id="tyc" rows="4" oninput="updatePiece()" placeholder="Vigencia: 1 al 11 de enero...">Vigencia: 1 al 11 de enero 2026 o agotar existencias. Cupos 4. Territorio Colombia. Aplica en Tiendas Despegar. Aplican T&C https://www.despegar.com.co/promovigentes.</textarea>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="field-group">
+      <button class="btn-generate" onclick="updatePiece()">
+        ⚡ Actualizar preview
+      </button>
+      <button class="btn-download" onclick="downloadPiece()">
+        ⬇ Descargar PNG
+      </button>
+      <button class="btn-download" style="border-color:#FF6B6B; color:#FF6B6B;" onclick="resetPiece()">
+        🗑 Limpiar y empezar de nuevo
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ══ PANEL DERECHO: PREVIEW ══ -->
+  <div class="preview-area">
+    <div class="preview-label">Vista previa en tiempo real</div>
+
+    <div id="piece-wrapper">
+      <div id="piece" class="vertical">
+
+        <div class="piece-bg"></div>
+
+        <!-- FOTO FONDO -->
+        <div class="piece-photo" id="piece-photo" style="background-image: url('https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=800')"></div>
+
+        <!-- POLAROID (marco flotante) -->
+        <div class="polaroid" id="polaroid">
+          <div class="polaroid-label">
+            <div id="pz-destino-label">PAQUETE A CANCÚN</div>
+            <div id="pz-hotel-label" style="font-weight:400; font-size:10px;">Grand Oasis Palm ★★★★</div>
+          </div>
+        </div>
+
+        <!-- REGIÓN 1: DURACIÓN -->
+        <div class="region-duracion">
+          <div class="duration-badge">🧳 <span id="pz-duracion">5 días 4 noches</span> · All Inclusive</div>
+        </div>
+
+        <!-- REGIÓN 2: PRECIO -->
+        <div class="region-precio">
+          <div class="desde-label">Desde</div>
+          <div class="price-display">
+            <span class="price-currency">$</span><span id="pz-precio">4.036.000</span><span class="price-cop"> COP</span>
+          </div>
+        </div>
+
+        <!-- REGIÓN 3: VUELO -->
+        <div class="region-vuelo">
+          <div class="origin-line">Desde <strong id="pz-origen">Bogotá</strong>. Vuelo con <span class="avianca-badge">✈ avianca</span></div>
+          <div class="includes-line">Incluye asistencia médica.</div>
+          <div class="date-line">Fecha de viaje <span id="pz-fecha">09 al 13 de febrero de 2026</span></div>
+        </div>
+
+        <!-- REGIÓN 4: ASESOR -->
+        <div class="region-asesor">
+          <div class="btn-asesor">➕ Descuentos exclusivos con tu asesor</div>
+        </div>
+
+        <!-- REGIÓN 5: CUOTAS -->
+        <div class="region-cuotas">
+          <div class="cuotas-box">
+            <div style="font-size:11px;color:rgba(255,255,255,0.8);line-height:1.3">Paga tu<br>viaje en</div>
+            <div class="cuotas-num">3</div>
+            <div class="cuotas-text"><strong>cuotas</strong><br>sin intereses</div>
+          </div>
+          <div class="banks-row">
+            <div class="bank-pill">Banco Bogotá</div>
+            <div class="bank-pill">AV Villas</div>
+            <div class="bank-pill">Banco Popular</div>
+            <div class="bank-pill">Banco Occidente</div>
+          </div>
+        </div>
+
+        <!-- REGIÓN 6: LOGO -->
+        <div class="region-logo">
+          <div class="despegar-logo">
+            <div class="d-mark">D</div>
+            despegar
+          </div>
+        </div>
+
+        <!-- REGIÓN 7: TYC -->
+        <div class="region-tyc">
+          <div style="font-size:7px;color:rgba(255,255,255,0.45);text-align:center;line-height:1.5" id="pz-legal">
+            Vigencia: 1 al 11 de enero 2026 o agotar existencias. Cupos 4. Territorio Colombia. Aplica en Tiendas Despegar. Aplican T&C https://www.despegar.com.co/promovigentes.
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NOTIF -->
+<div class="notif" id="notif">✅ Imagen descargada correctamente</div>
+
+<script>
+  let currentFormat = 'vertical';
+  let customPhotoUrl = null;
+
+  const defaultPhotos = {
+    'Cancún': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=800',
+    'Punta Cana': 'https://images.unsplash.com/photo-1600011689032-8b628b8a8747?w=800',
+    'Panamá': 'https://images.unsplash.com/photo-1591825729269-caeb344f6df2?w=800',
+    'San Andrés': 'https://images.unsplash.com/photo-1583400678-1e32d937a8a4?w=800',
+    'Cartagena': 'https://images.unsplash.com/photo-1599413984058-f45c77b9d4dc?w=800',
+    'Santa Marta': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800',
+  };
+
+  function setFormat(el, format) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    currentFormat = format;
+    const piece = document.getElementById('piece');
+    piece.className = format;
+    updatePiece();
+  }
+
+  function handleDestino(sel) {
+    const custom = document.getElementById('field-destino-custom');
+    custom.style.display = sel.value === 'otro' ? 'flex' : 'none';
+    if (sel.value !== 'otro' && !customPhotoUrl) {
+      const photo = defaultPhotos[sel.value];
+      if (photo) {
+        document.getElementById('piece-photo').style.backgroundImage = `url('${photo}')`;
+        document.getElementById('polaroid-img').src = photo;
+      }
+    }
+    updatePiece();
+  }
+
+  function handleOrigen(sel) {
+    document.getElementById('field-origen-custom').style.display =
+      sel.value === 'otro' ? 'flex' : 'none';
+    updatePiece();
+  }
+
+  function handlePhoto(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      customPhotoUrl = e.target.result;
+      document.getElementById('piece-photo').style.backgroundImage = `url('${customPhotoUrl}')`;
+      document.getElementById('polaroid-img').src = customPhotoUrl;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function getDestino() {
+    const sel = document.getElementById('sel-destino').value;
+    if (sel === 'otro') return document.getElementById('destino-custom').value || 'Destino';
+    return sel || 'Destino';
+  }
+
+  function getOrigen() {
+    const sel = document.getElementById('sel-origen').value;
+    if (sel === 'otro') return document.getElementById('origen-custom').value || 'tu ciudad';
+    return sel || 'tu ciudad';
+  }
+
+  function updatePiece() {
+    const destino = getDestino();
+    const origen = getOrigen();
+    const precio = document.getElementById('precio').value || '0';
+    const hotel = document.getElementById('hotel').value || '';
+    const duracion = document.getElementById('duracion').value || '5 días 4 noches';
+    const fecha = document.getElementById('fecha').value || '';
+
+    document.getElementById('pz-destino-label').textContent = `PAQUETE A ${destino.toUpperCase()}`;
+    document.getElementById('pz-hotel-label').innerHTML = hotel;
+    document.getElementById('pz-origen').textContent = origen;
+    document.getElementById('pz-precio').textContent = precio;
+    document.getElementById('pz-duracion').textContent = duracion;
+    document.getElementById('pz-fecha').textContent = fecha;
+    const tyc = document.getElementById('tyc').value;
+    document.getElementById('pz-legal').textContent = tyc;
+  }
+
+  function resetPiece() {
+    document.getElementById('sel-destino').value = '';
+    document.getElementById('sel-origen').value = '';
+    document.getElementById('destino-custom').value = '';
+    document.getElementById('origen-custom').value = '';
+    document.getElementById('field-destino-custom').style.display = 'none';
+    document.getElementById('field-origen-custom').style.display = 'none';
+    document.getElementById('hotel').value = 'Grand Oasis Palm ★★★★';
+    document.getElementById('precio').value = '4.036.000';
+    document.getElementById('duracion').value = '5 días 4 noches';
+    document.getElementById('fecha').value = '09 al 13 de febrero de 2026';
+    document.getElementById('tyc').value = 'Vigencia: 1 al 11 de enero 2026 o agotar existencias. Cupos 4. Territorio Colombia. Aplica en Tiendas Despegar. Aplican T&C https://www.despegar.com.co/promovigentes.';
+    customPhotoUrl = null;
+    const defaultPhoto = 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=800';
+    document.getElementById('piece-photo').style.backgroundImage = `url('${defaultPhoto}')`;
+    document.getElementById('fileInput').value = '';
+    updatePiece();
+  }
+
+  function downloadPiece() {
+    const piece = document.getElementById('piece');
+    html2canvas(piece, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+    }).then(canvas => {
+      const origen = getOrigen().replace(/\s/g, '-');
+      const destino = getDestino().replace(/\s/g, '-');
+      const link = document.createElement('a');
+      link.download = `despegar-${origen}-${destino}-${currentFormat}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      const notif = document.getElementById('notif');
+      notif.classList.add('show');
+      setTimeout(() => notif.classList.remove('show'), 3000);
+    });
+  }
+
+  // init
+  updatePiece();
+</script>
+</body>
+</html>
