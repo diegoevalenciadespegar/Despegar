@@ -338,16 +338,31 @@
 
   /* región: precio — Y:462, H:72 */
   .region-precio {
-    position: absolute;
-    top: 462px; left: 0; right: 0;
-    height: 72px;
-    display: flex;
-    align-items: center;
-    flex-direction: column;
-    justify-content: center;
-    padding: 0 20px;
-    background: #4300d2;
-  }
+     position: absolute;
+     top: 462px; left: 0; right: 0;
+     height: 72px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 0 20px;
+     background: #4300d2;
+   }
+ 
+   .price-block {
+     display: flex;
+     align-items: center;
+     gap: 2px;
+     line-height: 1;
+   }
+ 
+   .price-left {
+     display: flex;
+     flex-direction: column;
+     align-items: flex-end;
+     justify-content: center;
+     margin-right: 2px;
+   }
+
 
   /* región: vuelo + fecha — Y:534, H:110 */
   .region-vuelo {
@@ -500,8 +515,8 @@
   #piece.horizontal .price-display { font-size: 32px; }
   #piece.square .price-display { font-size: 30px; }
 
-  .price-currency { font-size: 18px; vertical-align: super; font-weight: 700; }
-  .price-cop { font-size: 13px; font-weight: 600; opacity: 0.8; }
+  .price-currency { font-size: 28px; font-weight: 700; line-height: 1; }
+  .price-cop { font-size: 13px; font-weight: 600; opacity: 0.8; align-self: flex-start; margin-top: 4px; }
 
   .origin-line {
     font-size: 21px;
@@ -814,14 +829,18 @@
 
         <!-- REGIÓN 1: DURACIÓN -->
         <div class="region-duracion">
-          <div class="duration-badge"><img src="icons/maleta.png" style="height:20px; vertical-align:middle;"> <span id="pz-duracion">5 días 4 noches</span> · All Inclusive</div>
+          <div class="duration-badge"><img src="icons/maleta.png" style="height:38px; vertical-align:middle;"> <span id="pz-duracion">5 días 4 noches</span> · All Inclusive</div>
         </div>
 
         <!-- REGIÓN 2: PRECIO -->
         <div class="region-precio">
-          <div class="desde-label">Desde</div>
-          <div class="price-display">
-            <span class="price-currency">$</span><span id="pz-precio">4.036.000</span><span class="price-cop"> COP</span>
+          <div class="price-block">
+            <div class="price-left">
+              <span class="desde-label">Desde</span>
+              <span class="price-currency">$</span>
+            </div>
+            <span class="price-display" id="pz-precio">4.036.000</span>
+            <span class="price-cop">COP</span>
           </div>
         </div>
 
