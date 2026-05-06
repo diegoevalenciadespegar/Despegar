@@ -555,14 +555,31 @@
   .btn-asesor {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    border: 1.5px solid rgba(255,255,255,0.5);
+    gap: 8px;
+    background: #00E5A0;
+    border: none;
     border-radius: 20px;
-    padding: 5px 14px;
+    padding: 6px 16px 6px 6px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
+    color: #4300d2;
     margin-bottom: 6px;
     width: fit-content;
+  }
+ 
+  .asesor-icon {
+    width: 26px;
+    height: 26px;
+    background: #4300d2;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: #00E5A0;
+    flex-shrink: 0;
+    line-height: 1;
   }
 
   .cuotas-box {
@@ -920,7 +937,11 @@
 
         <!-- REGIÓN 4: ASESOR -->
         <div class="region-asesor">
-          <div class="btn-asesor">➕ Descuentos exclusivos con tu asesor</div>
+          <div class="btn-asesor">
+          <span class="asesor-icon">+</span>
+          Descuentos exclusivos con tu asesor
+        </div>
+
         </div>
 
         <!-- REGIÓN 5: CUOTAS -->
