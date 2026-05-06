@@ -528,16 +528,16 @@
     gap: 6px;
     flex-wrap: wrap;
   }
-  .avianca-badge {
+  .airline-badge {
     background: white;
-    color: #C0392B;
-    font-weight: 700;
-    font-size: 10px;
-    padding: 2px 7px;
-    border-radius: 4px;
+    border-radius: 20px;
+    padding: 5px 14px;
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+  }
+  .airline-badge img {
+    height: 22px;
+    object-fit: contain;
   }
 
   .includes-line {
@@ -778,6 +778,24 @@
 
     <div class="divider"></div>
 
+    <!-- AEROLÍNEA -->
+    <div>
+      <div class="section-title">Aerolínea</div>
+      <div class="field">
+        <label>Aerolínea del vuelo</label>
+        <select id="sel-aerolinea" onchange="updateAerolinea(this)">
+          <option value="avianca">Avianca</option>
+          <option value="latam">Latam</option>
+          <option value="wingo">Wingo</option>
+          <option value="copa">Copa Airlines</option>
+          <option value="jetsmart">JetSmart</option>
+          <option value="arajet">AraJet</option>
+        </select>
+      </div>
+    </div>
+   
+    <div class="divider"></div>
+
     <!-- PRECIO Y FECHAS -->
     <div>
       <div class="section-title">Precio y Detalles</div>
@@ -895,7 +913,7 @@
 
         <!-- REGIÓN 3: VUELO -->
         <div class="region-vuelo">
-          <div class="origin-line">Desde <strong id="pz-origen">Bogotá</strong>. Vuelo con <span class="avianca-badge"><img src="logos/avianca.png" style="height:14px; vertical-align:middle;"></span></div>
+          <div class="origin-line">Desde <strong id="pz-origen">Bogotá</strong>. Vuelo con <span class="airline-badge"><img id="airline-logo" src="logos/avianca.png" alt="Avianca"></span></div>
           <div class="includes-line">Incluye asistencia médica.</div>
           <div class="date-line">Fecha de viaje <span id="pz-fecha">09 al 13 de febrero de 2026</span></div>
         </div>
@@ -944,7 +962,25 @@
 <script>
   let currentFormat = 'vertical';
   let customPhotoUrl = null;
+
+  const AIRLINES = {
+    'avianca':  { name: 'Avianca',       logo: 'logos/avianca.png' },
+    'latam':    { name: 'Latam',         logo: 'logos/latam.png' },
+    'wingo':    { name: 'Wingo',         logo: 'logos/wingo.png' },
+    'copa':     { name: 'Copa Airlines', logo: 'logos/copa.png' },
+    'jetsmart': { name: 'JetSmart',      logo: 'logos/jetsmart.png' },
+    'arajet':   { name: 'AraJet',        logo: 'logos/arajet.png' },
+  };
   
+  function updateAerolinea(sel) {
+    const airline = AIRLINES[sel.value];
+    if (airline) {
+      const logo = document.getElementById('airline-logo');
+      logo.src = airline.logo;
+      logo.alt = airline.name;
+    }
+  }
+ 
   const BANKS = {
     'bogota':    { name: 'Banco de Bogotá',    logo: 'logos/bogota.png' },
     'falabella': { name: 'Banco Falabella',    logo: 'logos/falabella.png' },
