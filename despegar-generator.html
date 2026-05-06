@@ -806,7 +806,7 @@
         <!-- POLAROID (marco flotante) -->
         <div class="polaroid" id="polaroid">
           <div class="polaroid-label">
-            <div id="pz-destino-label" style="font-size: 18px; font-weight: 1000;">PAQUETE A CANCÚN</div>
+            <div id="pz-destino-label" style="font-size: 18px; font-weight: 1000; white-space: nowrap; overflow: hidden;">PAQUETE A CANCÚN</div>
             <div id="pz-hotel-label" style="font-size:16px; font-weight:700;">Grand Oasis Palm ★★★★</div>
           </div>
         </div>
@@ -945,7 +945,15 @@
     const duracion = document.getElementById('duracion').value || '5 días 4 noches';
     const fecha = document.getElementById('fecha').value || '';
 
-    document.getElementById('pz-destino-label').textContent = `PAQUETE A ${destino.toUpperCase()}`;
+    const destinoEl = document.getElementById('pz-destino-label');
+    destinoEl.textContent = `PAQUETE A ${destino.toUpperCase()}`;
+    destinoEl.style.letterSpacing = 'normal';
+    let spacing = 0;
+    while (destinoEl.scrollWidth > destinoEl.offsetWidth && spacing > -0.12) {
+      spacing -= 0.005;
+      destinoEl.style.letterSpacing = spacing + 'em';
+    }
+
     document.getElementById('pz-hotel-label').innerHTML = hotel;
     document.getElementById('pz-origen').textContent = origen;
     document.getElementById('pz-precio').textContent = precio;
