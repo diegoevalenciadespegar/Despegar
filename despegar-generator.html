@@ -399,7 +399,7 @@
     flex-direction: column;
     justify-content: center;
     padding: 0 20px;
-    gap: 6px;
+    gap: 10px;
     background: #4300d2;
   }
 
@@ -566,31 +566,64 @@
   }
 
   .cuotas-box {
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    padding: 6px 10px;
+    border: 2px solid rgba(255,255,255,0.8);
+    border-radius: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+    .cuotas-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .cuotas-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .cuotas-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.4;
+    text-align: center;
+  }
+  .bank-checks {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .bank-check-label {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 6px;
+    font-size: 0.82rem;
+    color: var(--text);
+    cursor: pointer;
   }
-  .cuotas-text { font-size: 10px; line-height: 1.3; }
-  .cuotas-num { font-size: 22px; font-weight: 900; color: white; line-height: 1; }
+  .bank-check-label input {
+    width: auto;
+    cursor: pointer;
+    accent-color: var(--despegar-purple);
+  }
 
-  .banks-row {
-    display: flex;
-    gap: 5px;
-    align-items: center;
-    margin-bottom: 6px;
-    flex-wrap: wrap;
-  }
-  .bank-pill {
-    background: rgba(255,255,255,0.15);
-    border-radius: 5px;
-    padding: 2px 7px;
-    font-size: 9px;
-    font-weight: 600;
-  }
+  .cuotas-text { font-size: 18px; line-height: 1.3; color: white; }
+  .cuotas-num { font-size: 46px; font-weight: 900; color: white; line-height: 1; }
+
+  .banks-strip {
+      background: white;
+      border-radius: 25px;
+      padding: 6px 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .banks-strip img {
+      height: 22px;
+      object-fit: contain;
+    }
 
   .piece-footer {
     background: white;
@@ -783,6 +816,22 @@
 
     <div class="divider"></div>
 
+   <div class="divider"></div>
+
+   <!-- BANCOS -->
+   <div>
+     <div class="section-title">Bancos</div>
+     <div class="bank-checks">
+       <label class="bank-check-label"><input type="checkbox" class="bank-check" value="bogota" onchange="updateBanks()"> Banco de Bogotá</label>
+       <label class="bank-check-label"><input type="checkbox" class="bank-check" value="falabella" onchange="updateBanks()"> Banco Falabella</label>
+       <label class="bank-check-label"><input type="checkbox" class="bank-check" value="avvillas" onchange="updateBanks()"> Banco AV Villas</label>
+       <label class="bank-check-label"><input type="checkbox" class="bank-check" value="popular" onchange="updateBanks()"> Banco Popular</label>
+       <label class="bank-check-label"><input type="checkbox" class="bank-check" value="occidente" onchange="updateBanks()"> Banco de Occidente</label>
+       <label class="bank-check-label"><input type="checkbox" class="bank-check" value="nubank" onchange="updateBanks()"> Nu Bank</label>
+     </div>
+   </div>
+
+
     <!-- TYC -->
     <div>
       <div class="section-title">Términos y Condiciones</div>
@@ -858,17 +907,16 @@
 
         <!-- REGIÓN 5: CUOTAS -->
         <div class="region-cuotas">
-          <div class="cuotas-box">
-            <div style="font-size:11px;color:rgba(255,255,255,0.8);line-height:1.3">Paga tu<br>viaje en</div>
-            <div class="cuotas-num">3</div>
-            <div class="cuotas-text"><strong>cuotas</strong><br>sin intereses</div>
+          <div class="cuotas-row">
+            <div class="cuotas-box">
+              <div class="cuotas-label">Paga tu<br>viaje en</div>
+            </div>
+            <div class="cuotas-info">
+              <div class="cuotas-num">3</div>
+              <div class="cuotas-text"><strong>cuotas</strong><br>sin intereses</div>
+            </div>
           </div>
-          <div class="banks-row">
-            <div class="bank-pill">Banco Bogotá</div>
-            <div class="bank-pill">AV Villas</div>
-            <div class="bank-pill">Banco Popular</div>
-            <div class="bank-pill">Banco Occidente</div>
-          </div>
+          <div class="banks-strip" id="banks-strip"></div>
         </div>
 
         <!-- REGIÓN 6: LOGO -->
@@ -896,6 +944,28 @@
 <script>
   let currentFormat = 'vertical';
   let customPhotoUrl = null;
+  
+  const BANKS = {
+    'bogota':    { name: 'Banco de Bogotá',    logo: 'logos/bogota.png' },
+    'falabella': { name: 'Banco Falabella',    logo: 'logos/falabella.png' },
+    'avvillas':  { name: 'Banco AV Villas',    logo: 'logos/avvillas.png' },
+    'popular':   { name: 'Banco Popular',      logo: 'logos/popular.png' },
+    'occidente': { name: 'Banco de Occidente', logo: 'logos/occidente.png' },
+    'nubank':    { name: 'Nu Bank',            logo: 'logos/nubank.png' },
+  };
+  
+  function updateBanks() {
+    const selected = Array.from(document.querySelectorAll('.bank-check:checked')).map(cb => cb.value);
+    const strip = document.getElementById('banks-strip');
+    if (selected.length === 0) {
+      strip.style.display = 'none';
+    } else {
+      strip.style.display = 'inline-flex';
+      strip.innerHTML = selected.map(key =>
+        `<img src="${BANKS[key].logo}" alt="${BANKS[key].name}" title="${BANKS[key].name}">`
+      ).join('');
+    }
+  }
 
   const defaultPhotos = {
     'Cancún': 'https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=800',
